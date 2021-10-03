@@ -31,3 +31,7 @@ PRIMARY KEY(`id`)
 ```
 
 ## Usage
+- ```python ./flask_app.py```
+
+![Add](images/add.png?raw=true)
+![List](images/list.png?raw=true)
