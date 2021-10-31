@@ -2,9 +2,33 @@ import pymysql
 from flask import jsonify, render_template
 from flask import request
 from werkzeug.security import check_password_hash
+import re
+import requests
+from bs4 import BeautifulSoup
 
 from app import app, auth
 from config import mysql, users
+
+base_url = 'https://sevenstars.nl/'
+rest_path = 'professional/loadmore'
+rest_url = base_url + rest_path
+headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'}
+myobj = {'type': '1', 'search': '', 'functiongroup': 'Tester', 'province': 'ALL', 'status': '0',
+         'status': '1'}
+
+
+def sanitize_string(in_text):
+    return str(in_text.replace('\n', '')).strip()
+
+
+def get_details_from_data(soup_data):
+    all_the_divs = []
+    for divs in soup_data.find_all("div", class_='site-container__inner'):
+        for li in divs.find_all("div", recursive=False):
+            span = li.find("span")
+            if span:
+                all_the_divs.append(sanitize_string(li.text))
+    return all_the_divs
 
 
 @auth.verify_password
@@ -14,6 +38,7 @@ def verify_password(username, password):
         return username
 
 
+# API
 @app.route('/')
 @app.route('/index')
 @auth.login_required
@@ -23,14 +48,6 @@ def index():
         {
             'author': {'username': 'C. S. Lewis'},
             'body': 'The Chronicles of Narnia'
-        },
-        {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Portland!'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'body': 'The Avengers movie was so cool!'
         }
     ]
     return render_template('index.html', title='Home', user=user, posts=posts)
@@ -39,9 +56,30 @@ def index():
 @app.route('/scrape')
 @auth.login_required
 def scrape():
+    global soup_data
+    response = requests.post(rest_url, data=myobj, headers=headers)
+    data = response.json()
+    amount_of_vacancies = data['count']
+    if amount_of_vacancies > 0:
+        pattern = '.*/vacature/(.*)\" class'
+        result = re.match(pattern, data['html'])
+        if result:
+            get_the_data(result)
+        else:
+            print("I did not find any vacancies! " + data['html'])
     user = {'username': auth.current_user()}
-    datas = [{'vacatures': 'asdf asdf 1234 '}]
-    return render_template('scrape.html', title='Scrape', user=user, posts=datas)
+    return render_template('scrape.html', title='Scrape', user=user,
+                           datas=get_details_from_data(soup_data))
+
+
+def get_the_data(result):
+    global soup_data
+    detail_rest_url = base_url + 'partial/vacature/' + result.group(1)
+    print('get the detail url ' + detail_rest_url)
+    details_response = requests.get(detail_rest_url)
+    details_data = details_response.json()
+    details_data_html = details_data['html']
+    soup_data = BeautifulSoup(details_data_html, 'html.parser')
 
 
 @app.route('/add', methods=['POST'])

@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1>Hi, {{ user.username }}!</h1>
-    {% for data in posts %}
-    <div><p>{{ data.vacatures }} </p></div>
+    {% for data in datas %}
+    <div><p>{{ data }} </p></div>
     {% endfor %}
 {% endblock %}
