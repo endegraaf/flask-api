@@ -7,11 +7,15 @@ from app import app, auth
 from config import mysql
 
 from model.Employee import Employee
+from model.Vacancy import Vacancy
+
 
 SQL_DELETE_EMP = "DELETE FROM rest_emp WHERE id =%s"
 SQL_UPDATE_EMP = "UPDATE rest_emp SET name=%s, email=%s, phone=%s, address=%s WHERE id=%s"
 SQL_ADD_EMP = "INSERT INTO rest_emp(name, email, phone, address) VALUES(%s, %s, %s, %s)"
 SQL_GET_EMPS = "SELECT id, name, email, phone, address FROM rest_emp"
+SQL_GET_VACANCIES = "SELECT vacancy_id, title, url, body FROM vacancies"
+SQL_ADD_VACANCIES_7ST = "INSERT INTO vacancies(vacancy_id, title, url, body) VALUES(%s, %s, %s, %s)"
 
 
 @app.route('/')
@@ -26,6 +30,49 @@ def index():
         }
     ]
     return render_template('index.html', title='Home', user=user, posts=posts)
+
+
+@app.route('/addvacancy', methods=['POST'])
+@auth.login_required
+def add_vacancy():
+    try:
+        app.config['MYSQL_DATABASE_DB'] = 'vacancies'
+        required_fields = ("vacancy_id", "title", "url", "body")
+        vacancy = Vacancy(**request.json)  # unpack json into Employee
+        if vacancy.all_fields_filled(*required_fields) and request.method == 'POST':
+            sqlQuery = (SQL_ADD_VACANCIES_7ST)
+            bindData = tuple(getattr(vacancy, field) for field in required_fields)
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.execute(sqlQuery, bindData)
+            conn.commit()
+            return return_success_vacancy()
+        else:
+            return not_found()
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/getvacancies', methods=['GET'])
+@auth.login_required
+def get_vacancy():
+    try:
+        app.config['MYSQL_DATABASE_DB'] = 'vacancies'
+        conn = mysql.connect()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(SQL_GET_VACANCIES)
+        vacancyRows = cursor.fetchall()
+        response = jsonify(vacancyRows)
+        response.status_code = 200
+        return response
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/addemp', methods=['POST'])
@@ -97,6 +144,13 @@ def return_success_emp():
     response = jsonify('Employee updated successfully!')
     response.status_code = 200
     return response
+
+
+def return_success_vacancy():
+    response = jsonify('Vacancy added successfully!')
+    response.status_code = 200
+    return response
+
 
 
 @app.route('/deleteemp/<int:id>', methods=['DELETE'])
