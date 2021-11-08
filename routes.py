@@ -14,7 +14,8 @@ SQL_DELETE_EMP = "DELETE FROM rest_emp WHERE id =%s"
 SQL_UPDATE_EMP = "UPDATE rest_emp SET name=%s, email=%s, phone=%s, address=%s WHERE id=%s"
 SQL_ADD_EMP = "INSERT INTO rest_emp(name, email, phone, address) VALUES(%s, %s, %s, %s)"
 SQL_GET_EMPS = "SELECT id, name, email, phone, address FROM rest_emp"
-SQL_GET_VACANCIES = "SELECT vacancy_id, title, url, body FROM vacancies"
+SQL_GET_VACANCIES = "select distinct vacancy_id, title, url, body from \
+vacancies where vacancy_id IN (select distinct(vacancy_id) from vacancies);"
 SQL_ADD_VACANCIES_7ST = "INSERT INTO vacancies(vacancy_id, title, url, body) VALUES(%s, %s, %s, %s)"
 
 
@@ -40,11 +41,10 @@ def add_vacancy():
         required_fields = ("vacancy_id", "title", "url", "body")
         vacancy = Vacancy(**request.json)  # unpack json into Employee
         if vacancy.all_fields_filled(*required_fields) and request.method == 'POST':
-            sqlQuery = (SQL_ADD_VACANCIES_7ST)
-            bindData = tuple(getattr(vacancy, field) for field in required_fields)
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.execute(sqlQuery, bindData)
+            cursor.execute(SQL_ADD_VACANCIES_7ST,
+                           tuple(getattr(vacancy, field) for field in required_fields))
             conn.commit()
             return return_success_vacancy()
         else:
@@ -79,6 +79,7 @@ def get_vacancy():
 @auth.login_required
 def add_emp():
     try:
+        app.config['MYSQL_DATABASE_DB'] = 'employees'
         required_fields = ("name", "email", "phone", "address")
         employee = Employee(**request.json)  # unpack json into Employee
         if employee.all_fields_filled(*required_fields) and request.method == 'POST':
@@ -150,7 +151,6 @@ def return_success_vacancy():
     response = jsonify('Vacancy added successfully!')
     response.status_code = 200
     return response
-
 
 
 @app.route('/deleteemp/<int:id>', methods=['DELETE'])

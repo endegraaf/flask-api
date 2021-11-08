@@ -2,16 +2,17 @@
 <html>
     <head>
         {% if title %}
-        <title>{{ title }} - Microblog</title>
+        <title>{{ title }} - Sandbox</title>
         {% else %}
-        <title>Welcome to Microblog</title>
+        <title>Welcome to Sandbox</title>
         {% endif %}
     </head>
     <body>
         <div>
-            Microblog:
+            Sandbox:
             <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('scrape') }}">Scrape</a>
+            <a href="{{ url_for('viewscrape') }}">View scrape</a>
+            <a href="{{ url_for('scrape') }}">Scrape 7stars</a>
         </div>
         <hr>
         {% with messages = get_flashed_messages() %}
