@@ -45,7 +45,6 @@ def scrape():
     for vacancy in vacancies:
         print(vacancy)
         try:
-            app.config['MYSQL_DATABASE_DB'] = 'vacancies'
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.execute(routes.SQL_ADD_VACANCIES_7ST, vacancy)

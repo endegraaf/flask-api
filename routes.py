@@ -6,14 +6,8 @@ from flask import request
 from app import app, auth
 from config import mysql
 
-from model.Employee import Employee
 from model.Vacancy import Vacancy
 
-
-SQL_DELETE_EMP = "DELETE FROM rest_emp WHERE id =%s"
-SQL_UPDATE_EMP = "UPDATE rest_emp SET name=%s, email=%s, phone=%s, address=%s WHERE id=%s"
-SQL_ADD_EMP = "INSERT INTO rest_emp(name, email, phone, address) VALUES(%s, %s, %s, %s)"
-SQL_GET_EMPS = "SELECT id, name, email, phone, address FROM rest_emp"
 SQL_GET_VACANCIES = "select distinct vacancy_id, title, url, body from \
 vacancies where vacancy_id IN (select distinct(vacancy_id) from vacancies);"
 SQL_ADD_VACANCIES_7ST = "INSERT INTO vacancies(vacancy_id, title, url, body) VALUES(%s, %s, %s, %s)"
@@ -28,6 +22,10 @@ def index():
         {
             'author': {'username': 'C. S. Lewis'},
             'body': 'The Chronicles of Narnia'
+        },
+        {
+            'author': {'username': 'Tolkien'},
+            'body': 'LOTR'
         }
     ]
     return render_template('index.html', title='Home', user=user, posts=posts)
@@ -37,7 +35,6 @@ def index():
 @auth.login_required
 def add_vacancy():
     try:
-        app.config['MYSQL_DATABASE_DB'] = 'vacancies'
         required_fields = ("vacancy_id", "title", "url", "body")
         vacancy = Vacancy(**request.json)  # unpack json into Employee
         if vacancy.all_fields_filled(*required_fields) and request.method == 'POST':
@@ -60,7 +57,6 @@ def add_vacancy():
 @auth.login_required
 def get_vacancy():
     try:
-        app.config['MYSQL_DATABASE_DB'] = 'vacancies'
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         cursor.execute(SQL_GET_VACANCIES)
@@ -73,78 +69,6 @@ def get_vacancy():
     finally:
         cursor.close()
         conn.close()
-
-
-@app.route('/addemp', methods=['POST'])
-@auth.login_required
-def add_emp():
-    try:
-        app.config['MYSQL_DATABASE_DB'] = 'employees'
-        required_fields = ("name", "email", "phone", "address")
-        employee = Employee(**request.json)  # unpack json into Employee
-        if employee.all_fields_filled(*required_fields) and request.method == 'POST':
-            sqlQuery = (SQL_ADD_EMP)
-            bindData = tuple(getattr(employee, field) for field in required_fields)
-            conn = mysql.connect()
-            cursor = conn.cursor()
-            cursor.execute(sqlQuery, bindData)
-            conn.commit()
-            return return_success_emp()
-        else:
-            return not_found()
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.route('/getemp')
-@auth.login_required
-def emp():
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(SQL_GET_EMPS)
-        empRows = cursor.fetchall()
-        response = jsonify(empRows)
-        response.status_code = 200
-        return response
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.route('/updateemp', methods=['PUT'])
-@auth.login_required
-def update_emp():
-    try:
-        _json = request.json
-        required_fields = ("id", "name", "email", "phone", "address")
-        employee = Employee(**request.json)  # unpack json into Employee
-        if employee.all_fields_filled(*required_fields) and request.method == 'PUT':
-            sqlQuery = (SQL_UPDATE_EMP)
-            bindData = tuple(getattr(employee, field) for field in required_fields)
-            conn = mysql.connect()
-            cursor = conn.cursor()
-            cursor.execute(sqlQuery, bindData)
-            conn.commit()
-            return return_success_emp()
-        else:
-            return not_found()
-    except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def return_success_emp():
-    response = jsonify('Employee updated successfully!')
-    response.status_code = 200
-    return response
 
 
 def return_success_vacancy():
