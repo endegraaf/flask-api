@@ -3,14 +3,11 @@ from flask import render_template
 from flask import jsonify
 from flask import request
 
+import queries
 from app import app, auth
 from config import mysql
 
 from model.Vacancy import Vacancy
-
-SQL_GET_VACANCIES = "select distinct vacancy_id, title, url, body from \
-vacancies where vacancy_id IN (select distinct(vacancy_id) from vacancies);"
-SQL_ADD_VACANCIES_7ST = "INSERT INTO vacancies(vacancy_id, title, url, body) VALUES(%s, %s, %s, %s)"
 
 
 @app.route('/')
@@ -40,7 +37,7 @@ def add_vacancy():
         if vacancy.all_fields_filled(*required_fields) and request.method == 'POST':
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.execute(SQL_ADD_VACANCIES_7ST,
+            cursor.execute(queries.SQL_ADD_VACANCIES_7ST,
                            tuple(getattr(vacancy, field) for field in required_fields))
             conn.commit()
             return return_success_vacancy()
@@ -59,7 +56,7 @@ def get_vacancy():
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(SQL_GET_VACANCIES)
+        cursor.execute(queries.SQL_GET_VACANCIES)
         vacancyRows = cursor.fetchall()
         response = jsonify(vacancyRows)
         response.status_code = 200
@@ -83,7 +80,7 @@ def delete_emp(id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.execute((SQL_DELETE_EMP), (id,))
+        cursor.execute((queries.SQL_DELETE_EMP), (id,))
         conn.commit()
         respone = jsonify('Employee deleted successfully!')
         respone.status_code = 200

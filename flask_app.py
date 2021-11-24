@@ -1,6 +1,8 @@
 from werkzeug.security import check_password_hash
 import routes
 import scrape1
+import scrape2
+
 
 from app import app, auth
 from config import users

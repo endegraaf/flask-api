@@ -1,10 +1,11 @@
 import json
 import re
+
+import flask
 import requests
 from bs4 import BeautifulSoup
-from flask import render_template, request
-
-import routes
+from flask import render_template, request, jsonify, make_response
+import queries
 from app import app, auth
 from config import mysql
 from model.Vacancy import Vacancy
@@ -47,7 +48,7 @@ def scrape():
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.execute(routes.SQL_ADD_VACANCIES_7ST, vacancy)
+            cursor.execute(queries.SQL_ADD_VACANCIES_7ST, vacancy)
             conn.commit()
         except Exception as e:
             print(e)
@@ -58,7 +59,7 @@ def scrape():
     my_headers = {'Authorization': 'Basic ZGVtbzpkZW1v'}
     response = requests.get('http://127.0.0.1:5000/getvacancies', headers=my_headers)
     return render_template('viewscrape.html', title='Scrape', user=user,
-                               datas=response)
+                           datas=response)
 
 
 @app.route('/viewscrape')
@@ -67,8 +68,8 @@ def viewscrape():
     user = {'username': auth.current_user()}
     my_headers  = {'Authorization' : 'Basic ZGVtbzpkZW1v'}
     response = requests.get('http://127.0.0.1:5000/getvacancies', headers=my_headers)
+    print(json.loads(response.text))
     return render_template('viewscrape.html', title='Scrape', user=user,
-                           datas=response)
+                           data=json.loads(response.text))
 
-
-#str(get_the_vacancy_id(item[1])).strip(), item[0], item[1], item[2]
+# str(get_the_vacancy_id(item[1])).strip(), item[0], item[1], item[2]
