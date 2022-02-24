@@ -11,7 +11,7 @@ from config import mysql
 from model.Vacancy import Vacancy
 
 base_url = 'https://sevenstars.nl/'
-rest_path = 'professional/loadmore'
+rest_path = 'opdrachten/loadmore'
 rest_url = base_url + rest_path
 headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'}
 search_body = {'type': '1', 'search': '', 'functiongroup': 'Tester', 'province': 'ALL', 'status': '1'}
@@ -40,6 +40,7 @@ def get_details_from_data(soup_data):
 @auth.login_required
 def scrape():
     response = requests.post(rest_url, data=search_body, headers=headers)
+    print(response)
     data = response.json()
     print('amount_of_vacancies: ' + str(data['count']))
     vacancies = get_details_from_data(data['html'])
@@ -59,7 +60,7 @@ def scrape():
     my_headers = {'Authorization': 'Basic ZGVtbzpkZW1v'}
     response = requests.get('http://127.0.0.1:5000/getvacancies', headers=my_headers)
     return render_template('viewscrape.html', title='Scrape', user=user,
-                           datas=response)
+                           datas=response)  
 
 
 @app.route('/viewscrape')

@@ -2,6 +2,7 @@ from werkzeug.security import check_password_hash
 import routes
 import scrape1
 import scrape2
+import scrape3
 
 
 from app import app, auth
