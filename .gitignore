@@ -1,0 +1,7 @@
+config.py
+bin/
+lib/
+include/
+share/
+__pycache__/
+.idea/
