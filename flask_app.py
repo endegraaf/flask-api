@@ -64,17 +64,17 @@ def add_emp():
         conn.close()
 
 
-@app.route('/emp')
+@app.route('/employees')
 @auth.login_required
-def emp():
+def employees():
+    user = {'username': auth.current_user()}
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         cursor.execute("SELECT id, name, email, phone, address FROM rest_emp")
-        empRows = cursor.fetchall()
-        respone = jsonify(empRows)
-        respone.status_code = 200
-        return respone
+        emp_rows = cursor.fetchall()
+        #emps =
+        return render_template('emps.html', title='Employees', user=user, emps=jsonify(emp_rows).json)
     except Exception as e:
         print(e)
     finally:

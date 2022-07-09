@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ user.username }}!</h1>
+
+    <table>
+        <thead>
+        <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Email</th>
+        <th>Phone</th>
+        </tr>
+        </thead>
+        {% for emp in emps %}
+            <tr>
+                <td>{{ emp.id }}</td>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.address }}</td>
+                <td>{{ emp.email }}</td>
+                <td>{{ emp.phone }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
