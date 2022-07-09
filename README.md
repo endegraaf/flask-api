@@ -11,7 +11,7 @@ No problemo you would say? Yes, on my local network this doesn't pose any challe
 - Python-3, Python3-pip
 
 # Installation 
-- install all required libraries from the ```requirements.txt```. On Linux:
+- install all required libraries from the ```requirements.txt```. To do this on Linux:
 ```
 python -m venv .
 . bin/activate
