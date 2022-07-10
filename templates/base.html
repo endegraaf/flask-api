@@ -6,6 +6,14 @@
         {% else %}
         <title>Welcome to the demo app</title>
         {% endif %}
+        <link rel="stylesheet" href="{{ url_for('static',filename='datatables.min.css') }}" />
+        <script type="text/javascript" language="javascript" src="{{ url_for('static',filename='jquery-3.6.0.min.js') }}"></script>
+        <script type="text/javascript" language="javascript" src="{{ url_for('static',filename='datatables.min.js') }}"></script>
+        <script type="text/javascript" class="init">
+        $(document).ready(function () {
+    $('#example').DataTable();
+});
+	    </script>
     </head>
     <body>
         <div>Menu:

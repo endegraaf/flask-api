@@ -3,24 +3,24 @@
 {% block content %}
     <h1>Hi, {{ user.username }}!</h1>
 
-    <table>
-        <thead>
+<div id="example_wrapper" class="dataTables_wrapper">
+    <table id="example" class="display" style="width:100%">
         <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Address</th>
-        <th>Email</th>
-        <th>Phone</th>
+            <th>ID</th>
+            <th >Name</th>
+            <th  >Address</th>
+            <th >Email</th>
+            <th  >Phone</th>
         </tr>
-        </thead>
         {% for emp in emps %}
-            <tr>
-                <td>{{ emp.id }}</td>
-                <td>{{ emp.name }}</td>
-                <td>{{ emp.address }}</td>
-                <td>{{ emp.email }}</td>
-                <td>{{ emp.phone }}</td>
-            </tr>
+        <tr>
+            <td>{{ emp.id }}</td>
+            <td>{{ emp.name }}</td>
+            <td>{{ emp.address }}</td>
+            <td>{{ emp.email }}</td>
+            <td>{{ emp.phone }}</td>
+        </tr>
         {% endfor %}
     </table>
+</div>
 {% endblock %}

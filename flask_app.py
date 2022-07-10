@@ -32,6 +32,22 @@ def index():
     return render_template('index.html', title='Home', user=user, posts=posts)
 
 
+@app.route('/emp')
+@auth.login_required
+def emp():
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SELECT id, name, email, phone, address FROM rest_emp")
+        emp_rows = cursor.fetchall()
+        return jsonify(emp_rows)
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route('/add', methods=['POST'])
 @auth.login_required
 def add_emp():
