@@ -1,6 +1,10 @@
+from typing import Union, Any
+
 import pymysql
 from flask import jsonify, render_template
 from flask import request
+from pymysql.connections import Connection
+from pymysql.cursors import Cursor
 from werkzeug.security import check_password_hash
 
 from app import app, auth
@@ -89,7 +93,7 @@ def employees():
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         cursor.execute("SELECT id, name, email, phone, address FROM rest_emp")
         emp_rows = cursor.fetchall()
-        #emps =
+        # emps =
         return render_template('emps.html', title='Employees', user=user, emps=jsonify(emp_rows).json)
     except Exception as e:
         print(e)
@@ -111,20 +115,26 @@ def update_emp():
         if _name and _email and _phone and _address and _id and request.method == 'PUT':
             sqlQuery = "UPDATE rest_emp SET name=%s, email=%s, phone=%s, address=%s WHERE id=%s"
             bindData = (_name, _email, _phone, _address, _id,)
-            conn = mysql.connect()
-            cursor = conn.cursor()
+            conn: Connection = mysql.connect()
+            cursor: Union[Cursor, Any] = conn.cursor()
             cursor.execute(sqlQuery, bindData)
             conn.commit()
             respone = jsonify('Employee updated successfully!')
             respone.status_code = 200
             return respone
-        else:
-            return not_found()
     except Exception as e:
-        print(e)
+        return cannot_process_request(error="Error cannot update! Tried with JSON: " + str(request.json))
     finally:
-        cursor.close()
-        conn.close()
+        try:
+            if cursor is not None:
+                cursor.close()
+        except Exception as e:
+            print('Error closing database Cursor {}'.format(e))
+        try:
+            if conn is not None:
+                conn.close()
+        except Exception as e:
+            print('Error closing database Connection {}'.format(e))
 
 
 @app.route('/delete/<int:id>', methods=['DELETE'])
@@ -151,10 +161,24 @@ def not_found(error=None):
     message = {
         'status': 404,
         'message': 'Record not found: ' + request.url,
+        'addtional_info': error
     }
-    respone = jsonify(message)
-    respone.status_code = 404
-    return respone
+    response = jsonify(message)
+    response.status_code = 404
+    return response
+
+
+@app.errorhandler(500)
+@auth.login_required
+def cannot_process_request(error=None):
+    message = {
+        'status': 500,
+        'message': 'Cannot process request: ' + request.url,
+        'addtional_info': error
+    }
+    response = jsonify(message)
+    response.status_code = 500
+    return response
 
 
 if __name__ == "__main__":
